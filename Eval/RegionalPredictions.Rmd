@@ -1,0 +1,119 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+#library(ggsegAal)
+#library(ggseg)
+library(ggplot2)
+library(data.table)
+library(pROC)
+```
+
+
+```{r}
+p = sample(seq(0,.5,.001), 90)
+
+ggplot() + geom_brain(atlas = dk, 
+       mapping = aes(fill = p),
+       show.legend = FALSE) + theme(panel.grid.major = element_blank(),
+       panel.grid.minor = element_blank(),
+       panel.background = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+# GM Density
+
+```{r}
+gm_f = '/home/paulhager/Projects/ROIPredictor/data/regional_gmdensity_results.csv'
+gm_dt <- data.table(read.csv(gm_f))
+```
+
+Density Plot predicted vs GT
+
+```{r}
+# Bin size control + color palette
+ggplot(gm_dt, aes(x=gmvolume.GT.ROI.SUVR, y=gmvolume.Pred.ROI.SUVR) ) +
+  geom_bin2d(bins = 100) +
+  scale_fill_continuous(type = "gradient") +
+  theme(text = element_text(size = 17)) + 
+  scale_y_continuous(breaks=seq(0.5,0.9,0.1)) +
+  scale_x_continuous(breaks=seq(0.4,0.9,0.1)) +
+  labs(x = 'Gray Matter Density GT', y = 'Gray Matter Density Prediction') + 
+  geom_abline(intercept = 0, slope = 1, color='red4')
+ggsave("/home/paulhager/Projects/ROIPredictor/data/Figures/gm_density.png",device='png')
+```
+
+ROC
+
+```{r}
+gm_global_f <- '/home/paulhager/Projects/ROIPredictor/data/gb_neurodegen.csv'
+gb_global_dt <- data.table(read.csv(gm_global_f))
+png("/home/paulhager/Projects/ROIPredictor/data/Figures/gmdensity_ROC.png",width=750,height=750)
+plot.roc(gb_global_dt$gt,gb_global_dt$pred,xlim=c(0,1),ylim=c(0,1), print.auc=TRUE,print.auc.y=0.5,print.auc.cex=2,cex.axis=2,cex.lab=2,cex.main=2,identity=FALSE,main='GM Density GB ROC')
+dev.off()
+```
+
+
+```{r}
+gm_mean_density_gt <- gm_dt[,.(group_mean=mean(gmvolume.GT.ROI.SUVR)),keyby=variable]
+gm_mean_density_pred <- gm_dt[,.(group_mean=mean(gmvolume.Pred.ROI.SUVR)),keyby=variable]
+gm_mean_density <- merge(gm_mean_density_gt,gm_mean_density_pred, suffixes=c("_GT","_Pred"))
+gm_mean_density[, mean_difference := abs(group_mean_GT-group_mean_Pred) ]
+
+ggplot() + geom_brain(atlas = aal, 
+       mapping = aes(fill = gm_mean_density$mean_difference),
+       show.legend = FALSE) + theme(panel.grid.major = element_blank(),
+       panel.grid.minor = element_blank(),
+       panel.background = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+
+# AMYLOID
+
+```{r}
+amyloid_f = '/home/paulhager/Projects/ROIPredictor/data/regional_amyloid_results.csv'
+amyloid_dt <- data.table(read.csv(amyloid_f))
+```
+
+
+```{r}
+# Bin size control + color palette
+ggplot(amyloid_dt, aes(x=Abeta.GT.ROI.SUVR, y=Abeta.Pred.ROI.SUVR) ) +
+  geom_bin2d(bins = 100) +
+  scale_fill_continuous(type = "gradient") +
+  theme(text = element_text(size = 17)) + 
+  scale_y_continuous(breaks=seq(0.0,2.2,0.5)) +
+  scale_x_continuous(breaks=seq(0.0,2.2,0.5)) +
+  labs(x = 'Amyloid SUVR GT', y = 'Amyloid SUVR Prediction') + 
+  geom_abline(intercept = 0, slope = 1, color='red4')
+ggsave("/home/paulhager/Projects/ROIPredictor/data/Figures/amyloid_density.png",device='png', width = 7.29, height = 4.51)
+```
+
+ROC
+
+```{r}
+amyloid_global_f <- '/home/paulhager/Projects/ROIPredictor/data/global_suvr_amyloid.csv'
+amyloid_global_dt <- data.table(read.csv(amyloid_global_f))
+png("/home/paulhager/Projects/ROIPredictor/data/Figures/amyloid_ROC.png",width=750,height=750)
+plot.roc(amyloid_global_dt$GT.Label,amyloid_global_dt$Pred0_sm,xlim=c(0,1),ylim=c(0,1), print.auc=TRUE,print.auc.y=0.5,print.auc.cex=2,cex.axis=2,cex.lab=2,cex.main=2,identity=FALSE,main='Amyloid MLP ROC')
+dev.off()
+```
+
+```{r}
+amyloid_mean_suvr_gt <- amyloid_dt[,.(group_mean=mean(Abeta.GT.ROI.SUVR)),keyby=variable]
+amyloid_mean_suvr_pred <- amyloid_dt[,.(group_mean=mean(Abeta.Pred.ROI.SUVR)),keyby=variable]
+amyloid_mean_suvr <- merge(amyloid_mean_suvr_gt, amyloid_mean_suvr_pred, suffixes=c("_GT","_Pred"))
+amyloid_mean_suvr[, mean_difference := abs(group_mean_GT-group_mean_Pred)]
+
+ggplot() + geom_brain(atlas = dkt, 
+       mapping = aes(fill = gm_mean_density$mean_difference),
+       show.legend = FALSE) + theme(panel.grid.major = element_blank(),
+       panel.grid.minor = element_blank(),
+       panel.background = element_blank(), axis.line = element_line(colour = "black"))
+```
+

@@ -1,0 +1,53 @@
+<!doctype html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+<!--link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/style.css') }}"-->
+<html lang="en">
+  <form action="/predict" method="POST" enctype="multipart/form-data" style="margin: auto; width: 600px;">
+    <h1>Full ATN Prediction from Tau-PET</h1>
+    <br>
+
+    <div class="form-group" style="width: 100px;">
+      <label for="age">Age</label>
+      <input type="number" class="form-control" id="age" name="age" min="0" required>
+    </div>
+
+    <div class="form-group">
+      <h4>Sex</h4>
+      <label class="radio-inline">
+        <input type="radio" name="sex" id="sex_1" value="male" required> Female
+      </label>
+      <label class="radio-inline">
+        <input type="radio" name="sex" id="sex_2" value="female"> Male
+      </label>
+    </div>
+    
+    <div class="form-group">
+      <h4>APOE Status</h4>
+      <label class="radio-inline">
+        <input type="radio" name="apoe" id="apoe_1" value="33" required> 33
+      </label>
+      <label class="radio-inline">
+        <input type="radio" name="apoe" id="apoe_2" value="34"> 34
+      </label>
+      <label class="radio-inline">
+        <input type="radio" name="apoe" id="apoe_3" value="44"> 44
+      </label>
+      <label class="radio-inline">
+        <input type="radio" name="apoe" id="apoe_4" value="45"> 24
+      </label>
+      <label class="radio-inline">
+        <input type="radio" name="apoe" id="apoe_5" value="23"> 23
+      </label>
+      <label class="radio-inline">
+        <input type="radio" name="apoe" id="apoe_6" value="22"> 22
+      </label>
+    </div>
+    
+    <div class="form-group">
+      <label for="inputfile">Upload 2mm MNI PET</label>
+      <input type="file" id="tau_pet" name="tau_pet" accept=".nii,.nii.gz" required>
+    </div>
+
+    <button type="submit" class="btn btn-default">Submit</button>
+  </form>
+</html>
